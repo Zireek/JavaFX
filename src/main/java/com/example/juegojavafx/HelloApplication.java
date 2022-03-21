@@ -70,8 +70,13 @@ public class HelloApplication extends Application {
             if (ballXPos < width - width / 4) {
                 playerTwoYPos = ballYPos - player_height / 2;
             } else {
-                playerTwoYPos = ballYPos > playerTwoYPos + player_height / 2 ? playerTwoYPos += 1 : playerTwoYPos - 1;
+                playerTwoYPos = ballYPos > playerTwoYPos + player_height / 2 ? playerTwoYPos += ballYSpeed : playerTwoYPos - 5;
             }
+           /* if (ballXPos < width - width / 4) {
+                playerOneYPos = ballYPos - player_height / 2;
+            } else {
+                playerOneYPos = ballYPos > playerOneYPos + player_height / 2 ? playerOneYPos += ballYSpeed *2 : playerOneYPos - 5;
+            }*/
 
             //dibujar bola
             gc.fillOval(ballXPos, ballYPos, ball_r, ball_r);
