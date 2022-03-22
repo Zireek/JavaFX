@@ -34,10 +34,20 @@ public class HelloApplication extends Application {
     private boolean gameStarted;
     private int playerOneXPos = 0;
     private double playerTwoXPos = width - player_width;
+    boolean gameover;
+
+    private Stage primaryStage;
+
 
     @Override
     public void start(Stage stage) throws Exception {
-        stage.setTitle("PONG");
+        this.primaryStage = stage;
+        primaryStage.setTitle("PONG");
+        pantalla();
+    }
+
+    public void pantalla(){
+        gameover= false;
         Canvas canvas = new Canvas(width, height);
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(10), e -> run(gc)));
@@ -46,95 +56,116 @@ public class HelloApplication extends Application {
         //Control con el mouse
         canvas.setOnMouseMoved(e -> playerOneYPos = e.getY());
         canvas.setOnMouseClicked(e -> gameStarted = true);
-        stage.setScene(new Scene(new StackPane(canvas)));
-        stage.show();
+        primaryStage.setScene(new Scene(new StackPane(canvas)));
+        primaryStage.show();
         tl.play();
     }
 
-    private void run(GraphicsContext gc){
+    private void run(GraphicsContext gc) {
 
-        //color fondo
-        gc.setFill(Color.BLACK);
-        gc.fillRect(0, 0, width, height);
+        if (!gameover){
+            //color fondo
+            gc.setFill(Color.BLACK);
+            gc.fillRect(0, 0, width, height);
 
-        //color letra
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font(25));
+            //color letra
+            gc.setFill(Color.WHITE);
+            gc.setFont(Font.font(25));
 
-        //Movimiento bola
-        if (gameStarted) {
-            ballXPos += ballXSpeed;
-            ballYPos += ballYSpeed;
+            //Movimiento bola
+            if (gameStarted) {
+                ballXPos += ballXSpeed;
+                ballYPos += ballYSpeed;
 
-            //player2
-            if (ballXPos < width - width / 4) {
-                playerTwoYPos = ballYPos - player_height / 2;
-            } else {
-                playerTwoYPos = ballYPos > playerTwoYPos + player_height / 2 ? playerTwoYPos += ballYSpeed : playerTwoYPos - 5;
-            }
+                //player2
+                if (ballXPos < width - width / 4) {
+                    playerTwoYPos = ballYPos - player_height / 2;
+                } else {
+                    playerTwoYPos = ballYPos > playerTwoYPos + player_height / 2 ? playerTwoYPos += ballYSpeed : playerTwoYPos - 5;
+                }
            /* if (ballXPos < width - width / 4) {
                 playerOneYPos = ballYPos - player_height / 2;
             } else {
                 playerOneYPos = ballYPos > playerOneYPos + player_height / 2 ? playerOneYPos += ballYSpeed *2 : playerOneYPos - 5;
             }*/
 
-            //dibujar bola
-            gc.fillOval(ballXPos, ballYPos, ball_r, ball_r);
+                //dibujar bola
+                gc.fillOval(ballXPos, ballYPos, ball_r, ball_r);
 
-        }else {
+            } else {
 
-            //texto iniciar
-            gc.setStroke(Color.WHITE);
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.strokeText("Haz clic aquí", width / 2, height / 2);
+                //texto iniciar
+                gc.setStroke(Color.WHITE);
+                gc.setTextAlign(TextAlignment.CENTER);
+                gc.strokeText("Haz clic aquí", width / 2, height / 2);
 
-            //resetear posicion bola
-            ballXPos = width / 2;
-            ballYPos = height / 2;
+                //resetear posicion bola
+                ballXPos = width / 2;
+                ballYPos = height / 2;
 
-            //resetear la velocidad y direccion
+                //resetear la velocidad y direccion
 
-            ballXSpeed = new Random().nextInt(2) == 0 ? 1: -1;
-            ballYSpeed = new Random().nextInt(2) == 0 ? 1: +1;
+                ballXSpeed = new Random().nextInt(2) == 0 ? 1 : -1;
+                ballYSpeed = new Random().nextInt(2) == 0 ? 1 : +1;
 
+            }
+
+            //pelota en el canvas
+            if (ballYPos > height || ballYPos < 0) ballYSpeed *= -1;
+
+            //player2 punto
+
+            if (ballXPos < playerOneXPos - player_width) {
+                scoreP2++;
+                gameStarted = false;
+            }
+
+            //player1 punto
+            if (ballXPos > playerTwoXPos + player_width) {
+                scoreP1++;
+                gameStarted = false;
+            }
+
+            //incrementar la velocidad de la pelota
+            if (((ballXPos + ball_r > playerTwoXPos) && ballYPos >= playerTwoYPos && ballYPos <= playerTwoYPos + player_height) ||
+                    ((ballXPos < playerOneXPos + player_width) && ballYPos >= playerOneYPos && ballYPos <= playerOneYPos + player_height)) {
+                ballYSpeed += 1 * Math.signum(ballYSpeed);
+                ballXSpeed += 1 * Math.signum(ballXSpeed);
+                ballXSpeed *= -1;
+                ballYSpeed *= 1;
+            }
+
+            //mostrar score
+            gc.fillText(scoreP1 + "\t\t\t\t\t\t\t\t\t\t" + scoreP2, width / 2, 100);
+
+            //mostrar player1 y player2
+            gc.fillRect(playerTwoXPos, playerTwoYPos, player_width, player_height);
+            gc.fillRect(playerOneXPos, playerOneYPos, player_width, player_height);
+
+            if (scoreP1 == 3 || scoreP2 == 3) {
+                gameover = true;
+                try {
+                    gameOver();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
-        //pelota en el canvas
-        if (ballYPos > height || ballYPos < 0) ballYSpeed *= -1;
 
-        //player2 punto
-
-        if (ballXPos < playerOneXPos - player_width) {
-            scoreP2++;
-            gameStarted = false;
-        }
-
-        //player1 punto
-        if (ballXPos > playerTwoXPos + player_width){
-            scoreP1++;
-            gameStarted = false;
-        }
-
-        //incrementar la velocidad de la pelota
-        if (((ballXPos + ball_r > playerTwoXPos) && ballYPos >= playerTwoYPos && ballYPos <= playerTwoYPos + player_height) ||
-        ((ballXPos < playerOneXPos + player_width) && ballYPos >= playerOneYPos && ballYPos <= playerOneYPos + player_height)){
-            ballYSpeed +=1 * Math.signum(ballYSpeed);
-            ballXSpeed +=1 * Math.signum(ballXSpeed);
-            ballXSpeed *= -1;
-            ballYSpeed *= 1;
-        }
-
-        //mostrar score
-        gc.fillText(scoreP1 + "\t\t\t\t\t\t\t\t\t\t" + scoreP2, width / 2, 100);
-
-        //mostrar player1 y player2
-        gc.fillRect(playerTwoXPos, playerTwoYPos,player_width,player_height);
-        gc.fillRect(playerOneXPos, playerOneYPos,player_width,player_height);
 
     }
+
+    public void gameOver() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("gameover.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
+        GameOver controllerGameOver = fxmlLoader.getController();
+        controllerGameOver.setMain(this);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
 }
-
-
 
 
 
